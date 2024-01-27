@@ -5,14 +5,24 @@ let xSpeed = (2, 7);
 let ySpeed = (-7, -2);
 let score = 0;
 
-const bar_width = 90;
-const bar_height = 15;
-const width = 400;
-const height = 400;
+const bar_width = 100;
+const bar_height = 100;
+const width = 800;
+const height = 500;
 
-//Canvas
+
+let img; // 画像データを格納する変数
+let aodanuki;
+function preload() {
+    img = loadImage("assets/doraemon.jpg");
+}
+
+// Canvasの初期化
 function setup() {
     createCanvas(width, height);
+
+    aodanuki = createSprite(bar_width, bar_height);
+    aodanuki.addImage(img);
 }
 
 //Background
@@ -45,6 +55,11 @@ function draw() {
     fill('#d9c3f7');
     textSize(24);
     text("Score: " + score, 10, 25);
+
+    // スプライトを描画
+    drawSprites();
+    aodanuki.position.x = mouseX;
+    aodanuki.position.y = mouseY;
 }
 
 function checkGameOver(){
