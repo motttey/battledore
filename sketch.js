@@ -1,8 +1,8 @@
-//Random Ball placement
 let xBall = 50;
 let yBall = 50;
-let xSpeed = (2, 7);
-let ySpeed = (-7, -2);
+let xSpeed = 5; // X軸方向の速度
+let ySpeed = 0; // Y軸方向の速度
+let gravity = 0.1; // 重力
 let score = 0;
 
 const bar_width = 100;
@@ -71,8 +71,9 @@ function checkGameOver(){
 }
 
 function move(){
-    xBall += xSpeed
-    yBall += ySpeed
+    xBall += xSpeed;
+    yBall += ySpeed;
+    ySpeed += gravity; // 重力を加える
 }
 
 function bounce(){
