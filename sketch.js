@@ -77,11 +77,11 @@ function move(){
 }
 
 function bounce(){
-    if(xBall < 10 ||
+    if (xBall < 10 ||
         xBall > width - 10){
         xSpeed *= -1;
     }
-    if(yBall < 10){
+    if (yBall < 10){
         ySpeed *= -1;
     }
 }
@@ -94,9 +94,16 @@ function display(){
 //Bounce off paddle
 function paddle(){
     // 当たり判定
+    // スプライトの範囲を計算
+    let spriteLeft = aodanuki.position.x - aodanuki.width / 2;
+    let spriteRight = aodanuki.position.x + aodanuki.width / 2;
+    let spriteTop = aodanuki.position.y - aodanuki.height / 2;
+    let spriteBottom = aodanuki.position.y + aodanuki.height / 2;
+
+    // ボールがスプライトの範囲内にあるかをチェック
     if (
-        (xBall > mouseX && xBall < mouseX + bar_width) && 
-        (xBall > mouseY && xBall < mouseY + bar_height)
+        (xBall > spriteLeft && xBall < spriteRight) && 
+        (yBall > spriteTop && yBall < spriteBottom)
     ){
         xSpeed *= -1;
         ySpeed *= -1;
