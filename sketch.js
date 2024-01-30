@@ -1,14 +1,15 @@
-let xBall = 50;
+const bar_width = 100;
+const bar_height = 100;
+const width = 800;
+const height = 500;
+
+let xBall = width/2;
 let yBall = 50;
 let xSpeed = 5; // X軸方向の速度
 let ySpeed = 0; // Y軸方向の速度
 let gravity = 0.1; // 重力
 let score = 0;
 
-const bar_width = 100;
-const bar_height = 100;
-const width = 800;
-const height = 500;
 
 
 let img; // 画像データを格納する変数
@@ -23,6 +24,8 @@ function setup() {
 
     aodanuki = createSprite(bar_width, bar_height);
     aodanuki.addImage(img);
+
+    drawSprites();
 }
 
 //Background
@@ -57,9 +60,22 @@ function draw() {
     text("Score: " + score, 10, 25);
 
     // スプライトを描画
-    drawSprites();
+    // drawSprites();
     aodanuki.position.x = mouseX;
     aodanuki.position.y = mouseY;
+}
+
+function mousePressed(event) {
+    // ゲームがオーバー状態であれば、再度ゲームを開始する
+    console.log(event);
+    if (isGameOver) {
+        isGameOver = false; // ゲームオーバー状態を解除してゲームを再開
+        score = 0; // スコアをリセット
+        xBall = 50; // ボールの位置をリセット
+        yBall = 50;
+        xSpeed = 5; // ボールの速度をリセット
+        ySpeed = 0;
+    }
 }
 
 function checkGameOver(){
