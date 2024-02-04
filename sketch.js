@@ -4,7 +4,7 @@ const width = 800;
 const height = 500;
 
 let xBall = width / 2;
-let yBall = 50;
+let yBall = height / 2;
 let zBall = 200; // ボールのz座標（手前側）
 let xSpeed = 5; // X軸方向の速度
 let ySpeed = 0; // Y軸方向の速度
@@ -69,8 +69,8 @@ function mousePressed(event) {
     if (isGameOver) {
         isGameOver = false; // ゲームオーバー状態を解除してゲームを再開
         score = 0; // スコアをリセット
-        xBall = 50; // ボールの位置をリセット
-        yBall = 50;
+        xBall = width/2; // ボールの位置をリセット
+        yBall = height/2;
         zBall = 200;
         xSpeed = 5; // ボールの速度をリセット
         ySpeed = 0;
