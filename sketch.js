@@ -3,8 +3,8 @@ const bar_height = 100;
 const width = 800;
 const height = 500;
 
-let xBall = width / 2;
-let yBall = height / 2;
+let xBall = width/2;
+let yBall = height/2;
 let zBall = 200; // ボールのz座標（手前側）
 let xSpeed = 5; // X軸方向の速度
 let ySpeed = 0; // Y軸方向の速度
@@ -21,12 +21,13 @@ function preload() {
 
 // Canvasの初期化
 function setup() {
-    createCanvas(width, height);
+    createCanvas(width, height, WEBGL); // 3Dキャンバスの作成
 
     aodanuki = createSprite(bar_width, bar_height);
     aodanuki.addImage(img);
 
-    drawSprites();
+    xBall = 0;
+    yBall = 0;
 }
 
 //Background
@@ -58,7 +59,7 @@ function draw() {
     text("Score: " + score, 10, 25);
 
     // スプライトを描画
-    // drawSprites();
+    drawSprites();
     aodanuki.position.x = mouseX;
     aodanuki.position.y = mouseY;
 }
@@ -95,10 +96,10 @@ function move() {
 }
 
 function bounce() {
-    if (xBall < 10 || xBall > width - 10) {
+    if (xBall < -width / 2 || xBall > width / 2) {
         xSpeed *= -1;
     }
-    if (yBall < 10) {
+    if (yBall < -height / 2 || yBall > height / 2) {
         ySpeed *= -1;
     }
     if (zBall < 0 || zBall > 200) { // z軸方向の当たり判定
@@ -108,7 +109,9 @@ function bounce() {
 
 function display() {
     fill('#d9c3f7');
-    ellipse(xBall, yBall, 20, 20);
+    translate(xBall, yBall, zBall); // 3D空間内での位置を指定
+    sphere(20); // 半径20の球を描画
+    translate(-xBall, -yBall, -zBall); // 位置を元に戻す
 }
 
 //Bounce off paddle
