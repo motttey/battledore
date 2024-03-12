@@ -15,6 +15,8 @@ let score = 0;
 let img; // 画像データを格納する変数
 // スプライトを格納する変数
 let aodanuki;
+// ゲームオーバー判定
+let isGameOver = false;
 
 function preload() {
     img = loadImage("assets/doraemon.jpg");
@@ -29,9 +31,13 @@ function setup() {
 
     xBall = 0;
     yBall = 0;
+
+    fill('#d9c3f7');
+    textSize(24);
+    textAlign(CENTER, LEFT); 
+    text("Score: " + score, 10, 25);
 }
 
-//Background
 function draw() {
     isGameOver = checkGameOver();
 
@@ -52,12 +58,14 @@ function draw() {
         //Score
         fill('#ffffff');
         textSize(24);
+        textAlign(CENTER, CENTER);
         text("Game Over", width / 2, height / 2);
     }
 
     //Score
     fill('#d9c3f7');
     textSize(24);
+    textAlign(CENTER, LEFT); 
     text("Score: " + score, 10, 25);
 
     // スプライトを描画
