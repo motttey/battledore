@@ -1,7 +1,7 @@
-const bar_width = 100;
-const bar_height = 100;
-const width = 800;
-const height = 500;
+const bar_width = 50;
+const bar_height = 50;
+const width = 1000;
+const height = 600;
 
 let xBall = width/2;
 let yBall = height/2;
@@ -13,6 +13,7 @@ let gravity = 0.1; // 重力
 let score = 0;
 
 let img; // 画像データを格納する変数
+// スプライトを格納する変数
 let aodanuki;
 
 function preload() {
@@ -33,6 +34,7 @@ function setup() {
 //Background
 function draw() {
     isGameOver = checkGameOver();
+
     //Background
     background(0);
 
@@ -81,6 +83,7 @@ function mousePressed(event) {
 
 function checkGameOver() {
     if (yBall >= height) {
+        console.log("true");
         return true;
     } else {
         return false;
