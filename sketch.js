@@ -116,9 +116,11 @@ function bounce() {
 
 function display() {
     fill('#d9c3f7');
+    fill(255); // 白色を指定
+    noStroke(); // 線を非表示にする
     translate(xBall, yBall, zBall); // 3D空間内での位置を指定
     sphere(20); // 半径20の球を描画
-    translate(-xBall, -yBall, -zBall); // 位置を元に戻す
+    // translate(-xBall, -yBall, -zBall); // 位置を元に戻す
 }
 
 //Bounce off paddle
