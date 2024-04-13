@@ -31,11 +31,6 @@ function setup() {
 
     xBall = 0;
     yBall = 0;
-
-    fill('#d9c3f7');
-    textSize(24);
-    textAlign(CENTER, LEFT); 
-    text("Score: " + score, 10, 25);
 }
 
 function draw() {
@@ -47,7 +42,7 @@ function draw() {
     if (!isGameOver) {
         //Paddle
         fill('#ffffff');
-        rect(mouseX, mouseY, bar_width, bar_height);
+        rect(mouseX - bar_width / 2, mouseY - bar_height / 2, bar_width, bar_height);
 
         //Functions
         move();
@@ -55,23 +50,24 @@ function draw() {
         bounce();
         paddle();
     } else {
-        //Score
+        //Game Over
         fill('#ffffff');
         textSize(24);
         textAlign(CENTER, CENTER);
-        text("Game Over", width / 2, height / 2);
+        text("Game Over", 0, 0); // WEBGLモードでは、原点がキャンバスの中心になります
     }
 
     //Score
     fill('#d9c3f7');
     textSize(24);
-    textAlign(CENTER, LEFT); 
-    text("Score: " + score, 10, 25);
+    textAlign(CENTER, TOP); // 垂直方向のパラメーターをTOPに変更
+    text("Score: " + score, 0, -height / 2 + 25); // スコアをキャンバスの上部に表示
 
     // スプライトを描画
     drawSprites();
-    aodanuki.position.x = mouseX;
-    aodanuki.position.y = mouseY;
+    // WEBGLモードでは、原点がキャンバスの中心になるため、マウスの位置を調整
+    aodanuki.position.x = mouseX - width / 2;
+    aodanuki.position.y = mouseY - height / 2;
 }
 
 function mousePressed(event) {
