@@ -18,13 +18,23 @@ let aodanuki;
 // ゲームオーバー判定
 let isGameOver = false;
 
+let canvasFont;
+
 function preload() {
     img = loadImage("assets/doraemon.jpg");
+
+    // トゥルータイプフォントを読み込む
+    // https://fonts.google.com/specimen/Trade+Winds
+    // WEBGL: you must load and set a font before drawing text.
+    const fontUrl = "https://fonts.gstatic.com/ea/notosansjapanese/v6/NotoSansJP-Bold.otf";
+    canvasFont = loadFont(fontUrl);
 }
 
 // Canvasの初期化
 function setup() {
     createCanvas(width, height, WEBGL); // 3Dキャンバスの作成
+
+    textFont(canvasFont);
 
     aodanuki = createSprite(bar_width, bar_height);
     aodanuki.addImage(img);
@@ -35,7 +45,7 @@ function setup() {
 
 function draw() {
     isGameOver = checkGameOver();
-
+    console.log(isGameOver)
     //Background
     background(0);
 
@@ -61,7 +71,7 @@ function draw() {
     fill('#d9c3f7');
     textSize(24);
     textAlign(CENTER, TOP); // 垂直方向のパラメーターをTOPに変更
-    text("Score: " + score, 0, -height / 2 + 25); // スコアをキャンバスの上部に表示
+    // text("Score: " + score, 0, -height / 2 + 25); // スコアをキャンバスの上部に表示
 
     // スプライトを描画
     drawSprites();
@@ -72,7 +82,6 @@ function draw() {
 
 function mousePressed(event) {
     // ゲームがオーバー状態であれば、再度ゲームを開始する
-    console.log(event);
     if (isGameOver) {
         isGameOver = false; // ゲームオーバー状態を解除してゲームを再開
         score = 0; // スコアをリセット
@@ -83,6 +92,7 @@ function mousePressed(event) {
         ySpeed = 0;
         zSpeed = -2;
     }
+    return false;
 }
 
 function checkGameOver() {
