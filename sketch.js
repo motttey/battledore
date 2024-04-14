@@ -9,7 +9,7 @@ let zBall = 200; // ボールのz座標（手前側）
 let xSpeed = 0; // X軸方向の速度
 let ySpeed = -5; // Y軸方向の速度
 let zSpeed = -1; // Z軸方向の速度（手前に向かう）
-let gravity = 0.05; // 重力
+let gravity = 0.2; // 重力
 let score = 0;
 
 let img; // 画像データを格納する変数
@@ -71,13 +71,24 @@ function draw() {
     fill('#d9c3f7');
     textSize(24);
     textAlign(CENTER, TOP); // 垂直方向のパラメーターをTOPに変更
-    // text("Score: " + score, 0, -height / 2 + 25); // スコアをキャンバスの上部に表示
 
-    // スプライトを描画
-    drawSprites();
+    // 固定のメッセージを表示する際にスケールを調整する
+    // p5.jsでは 3D空間では、オブジェクトはそのz座標に応じて大きさが変わるように描画される
+    // 現在の描画設定を保存
+    push();
+    // z軸のスケールを1に固定
+    scale(1, 1, 1);
+    
     // WEBGLモードでは、原点がキャンバスの中心になるため、マウスの位置を調整
     aodanuki.position.x = mouseX - width / 2;
     aodanuki.position.y = mouseY - height / 2;
+    
+    // スプライトを描画
+    drawSprites();
+    // スコアをキャンバスの上部に表示
+    text("Score: " + score, 0, -height / 2 + 25);
+    // 描画設定を元に戻す
+    pop();
 }
 
 function mousePressed(event) {
