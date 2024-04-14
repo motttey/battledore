@@ -44,8 +44,6 @@ function setup() {
 }
 
 function draw() {
-    isGameOver = checkGameOver();
-    console.log(isGameOver)
     //Background
     background(0);
 
@@ -56,6 +54,8 @@ function draw() {
 
         //Functions
         move();
+        isGameOver = checkGameOver();
+
         display();
         bounce();
         paddle();
@@ -84,9 +84,11 @@ function mousePressed(event) {
     // ゲームがオーバー状態であれば、再度ゲームを開始する
     if (isGameOver) {
         isGameOver = false; // ゲームオーバー状態を解除してゲームを再開
-        score = 0; // スコアをリセット
-        xBall = width/2; // ボールの位置をリセット
-        yBall = height/2;
+        // スコアをリセット
+        score = 0;
+        // 位置をリセット
+        xBall = 0;
+        yBall = 0;
         zBall = 200;
         xSpeed = 5; // ボールの速度をリセット
         ySpeed = 0;
