@@ -6,10 +6,10 @@ const height = 600;
 let xBall = width/2;
 let yBall = height/2;
 let zBall = 200; // ボールのz座標（手前側）
-let xSpeed = 5; // X軸方向の速度
-let ySpeed = 0; // Y軸方向の速度
-let zSpeed = -2; // Z軸方向の速度（手前に向かう）
-let gravity = 0.1; // 重力
+let xSpeed = 0; // X軸方向の速度
+let ySpeed = -5; // Y軸方向の速度
+let zSpeed = -1; // Z軸方向の速度（手前に向かう）
+let gravity = 0.05; // 重力
 let score = 0;
 
 let img; // 画像データを格納する変数
@@ -90,9 +90,10 @@ function mousePressed(event) {
         xBall = 0;
         yBall = 0;
         zBall = 200;
-        xSpeed = 5; // ボールの速度をリセット
-        ySpeed = 0;
-        zSpeed = -2;
+        // 速度をリセット
+        xSpeed = 0; // X軸方向の速度
+        ySpeed = -5; // Y軸方向の速度
+        zSpeed = -1; // Z軸方向の速度（手前に向かう）
     }
     return false;
 }
