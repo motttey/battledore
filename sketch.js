@@ -86,8 +86,7 @@ function mousePressed(event) {
 }
 
 function checkGameOver() {
-    if (yBall >= height) {
-        console.log("true");
+    if (yBall >= height / 2) {
         return true;
     } else {
         return false;
