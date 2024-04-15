@@ -20,6 +20,8 @@ let isGameOver = false;
 
 let canvasFont;
 
+let overlay;
+
 function preload() {
     img = loadImage("assets/doraemon.jpg");
 
@@ -41,6 +43,9 @@ function setup() {
 
     xBall = 0;
     yBall = 0;
+
+    // 2Dグラフィックス用のオフスクリーンキャンバスを作成
+    overlay = createGraphics(windowWidth, windowHeight);
 }
 
 function draw() {
@@ -67,11 +72,6 @@ function draw() {
         text("Game Over", 0, 0); // WEBGLモードでは、原点がキャンバスの中心になります
     }
 
-    //Score
-    fill('#d9c3f7');
-    textSize(24);
-    textAlign(CENTER, TOP); // 垂直方向のパラメーターをTOPに変更
-
     // 固定のメッセージを表示する際にスケールを調整する
     // p5.jsでは 3D空間では、オブジェクトはそのz座標に応じて大きさが変わるように描画される
     // 現在の描画設定を保存
@@ -82,13 +82,19 @@ function draw() {
     // WEBGLモードでは、原点がキャンバスの中心になるため、マウスの位置を調整
     aodanuki.position.x = mouseX - width / 2;
     aodanuki.position.y = mouseY - height / 2;
-    
+    aodanuki.position.z = 0;
+
     // スプライトを描画
     drawSprites();
-    // スコアをキャンバスの上部に表示
-    text("Score: " + score, 0, -height / 2 + 25);
-    // 描画設定を元に戻す
-    pop();
+
+    overlay.clear();
+    overlay.fill('#d9c3f7');
+    overlay.textSize(24);
+    overlay.textAlign(CENTER, TOP);
+    overlay.text("Score: " + score, 0, -height / 2 + 25);
+
+    // 2Dオーバーレイを3Dシーンに適用
+    image(overlay, -windowWidth / 2, -windowHeight / 2);
 }
 
 function mousePressed(event) {
