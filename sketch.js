@@ -132,6 +132,7 @@ function move() {
 }
 
 function bounce() {
+    xSpeed = Math.random() * 5;
     if (xBall < -width / 2 || xBall > width / 2) {
         xSpeed *= -1;
     }
