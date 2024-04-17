@@ -132,7 +132,6 @@ function move() {
 }
 
 function bounce() {
-    xSpeed = Math.random() * 5;
     if (xBall < -width / 2 || xBall > width / 2) {
         xSpeed *= -1;
     }
@@ -153,7 +152,7 @@ function display() {
     // translate(-xBall, -yBall, -zBall); // 位置を元に戻す
 }
 
-//Bounce off paddle
+// Bounce off paddle
 function paddle() {
     // 当たり判定
     // スプライトの範囲を計算
@@ -170,6 +169,7 @@ function paddle() {
     ) {
         xSpeed *= -1;
         ySpeed *= -1;
+        xSpeed = ((Math.random() > 0.5) ? 1 : -1) * Math.random() * 5;
         score++;
     }
 }
