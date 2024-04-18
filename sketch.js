@@ -14,7 +14,11 @@ let score = 0;
 
 let img; // 画像データを格納する変数
 // スプライトを格納する変数
-let aodanuki;
+let aodanuki = {
+    width: bar_width,
+    height: bar_height
+};
+
 // ゲームオーバー判定
 let isGameOver = false;
 
@@ -45,12 +49,12 @@ function setup() {
     yBall = 0;
 
     // 2Dグラフィックス用のオフスクリーンキャンバスを作成
-    overlay = createGraphics(windowWidth, windowHeight);
+    overlay = createGraphics(width, height);
 }
 
 function draw() {
     //Background
-    background(0);
+    background(50);
 
     if (!isGameOver) {
         //Paddle
@@ -94,7 +98,7 @@ function draw() {
     overlay.text("Score: " + score, 0, -height / 2 + 25);
 
     // 2Dオーバーレイを3Dシーンに適用
-    image(overlay, -windowWidth / 2, -windowHeight / 2);
+    image(overlay, width, height);
 }
 
 function mousePressed(event) {
