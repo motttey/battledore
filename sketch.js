@@ -153,7 +153,6 @@ function display() {
     noStroke(); // 線を非表示にする
     translate(xBall, yBall, zBall); // 3D空間内での位置を指定
     sphere(20); // 半径20の球を描画
-    // translate(-xBall, -yBall, -zBall); // 位置を元に戻す
 }
 
 // Bounce off paddle
@@ -173,7 +172,7 @@ function paddle() {
     ) {
         xSpeed *= -1;
         ySpeed *= -1;
-        xSpeed = ((Math.random() > 0.5) ? 1 : -1) * Math.random() * 5;
+        xSpeed = ((xSpeed < 0) ? 1 : -1) * Math.random() * 5;
         score++;
     }
 }
