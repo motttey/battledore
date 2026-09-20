@@ -22,6 +22,7 @@ let playerX;
 let opponentX;
 let message = "";
 let messageTimer = 0;
+let audioCtx;
 
 function setup() {
   createCanvas(width, height);
@@ -30,6 +31,8 @@ function setup() {
   playerX = width / 2;
   opponentX = width / 2;
   resetBall("opponent");
+  // キャンバス外で最初にクリックした場合にも、以後の打球音を有効にする。
+  document.addEventListener("pointerdown", enableSound, { once: true });
 }
 
 function draw() {
@@ -114,6 +117,7 @@ function canPlayerHit() {
 
 function returnBallByPlayer() {
   opponentLife--;
+  playHagoitaHitSE();
 
   if (opponentLife <= 0) {
     gameState = "win";
@@ -131,6 +135,7 @@ function returnBallByPlayer() {
 }
 
 function returnBallByOpponent() {
+  playHagoitaHitSE();
   ball.z = 0.95;
   ball.vz = -0.010;
   // 相手の返球は中央付近を狙いつつ、毎回左右へ異なる小さな揺れを加える。
@@ -315,6 +320,51 @@ function showMessage(nextMessage) {
   messageTimer = 70;
 }
 
+// 羽子板の木に羽根が当たる、短く乾いた「パコン」という音。
+function playHagoitaHitSE() {
+  if (!audioCtx || audioCtx.state !== "running") return;
+
+  const start = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const toneGain = audioCtx.createGain();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(720, start);
+  osc.frequency.exponentialRampToValueAtTime(175, start + 0.09);
+  toneGain.gain.setValueAtTime(0.18, start);
+  toneGain.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
+  osc.connect(toneGain).connect(audioCtx.destination);
+
+  // ごく短いノイズを混ぜ、木札に当たる質感を加える。
+  const length = Math.floor(audioCtx.sampleRate * 0.025);
+  const buffer = audioCtx.createBuffer(1, length, audioCtx.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) samples[i] = Math.random() * 2 - 1;
+  const noise = audioCtx.createBufferSource();
+  const noiseGain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.value = 1800;
+  filter.Q.value = 0.8;
+  noise.buffer = buffer;
+  noiseGain.gain.setValueAtTime(0.055, start);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, start + 0.035);
+  noise.connect(filter).connect(noiseGain).connect(audioCtx.destination);
+
+  osc.start(start);
+  osc.stop(start + 0.13);
+  noise.start(start);
+  noise.stop(start + 0.035);
+}
+
+function enableSound() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioCtx = new AudioContextClass();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+}
+
 function drawMessage(label, size, ink) {
   textAlign(CENTER, CENTER);
   textSize(size);
@@ -337,6 +387,7 @@ function drawEndScreen() {
 }
 
 function mousePressed() {
+  enableSound();
   if (gameState === "playing") return false;
   playerLife = maxLife;
   opponentLife = maxLife;
