@@ -1,5 +1,6 @@
 const width = 1000;
 const height = 600;
+const japaneseFont = '"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
 
 // z = 0 は手前（プレイヤー）、z = 1 は奥（相手）。
 // 3D は使わず、深度に応じた縮尺で 2D のコートに投影する。
@@ -24,7 +25,8 @@ let messageTimer = 0;
 
 function setup() {
   createCanvas(width, height);
-  textFont("Noto Sans JP");
+  // 日本語を標準搭載しているフォントを優先し、未読込の Web フォントに依存しない。
+  textFont(japaneseFont);
   playerX = width / 2;
   opponentX = width / 2;
   resetBall("opponent");
@@ -112,7 +114,6 @@ function canPlayerHit() {
 
 function returnBallByPlayer() {
   opponentLife--;
-  showMessage("NICE RETURN!  相手のライフ -1");
 
   if (opponentLife <= 0) {
     gameState = "win";
