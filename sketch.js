@@ -1,6 +1,9 @@
 const width = 1000;
 const height = 600;
 const japaneseFont = '"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
+const fenceBottom = 426;
+const opponentSize = 315;
+const opponentHitDuration = 300;
 
 // z = 0 は手前（プレイヤー）、z = 1 は奥（相手）。
 // 3D は使わず、深度に応じた縮尺で 2D のコートに投影する。
@@ -25,11 +28,14 @@ let message = "";
 let messageTimer = 0;
 let audioCtx;
 let enemyImage;
+let enemyHitImage;
 let hagoitaImage;
 let playerHit = null;
+let opponentHit = null;
 
 function preload() {
   enemyImage = loadImage("assets/enemy1.png");
+  enemyHitImage = loadImage("assets/enemy2.png");
   hagoitaImage = loadImage("assets/hagoita.png");
 }
 
@@ -71,12 +77,12 @@ function resetBall(server) {
   // 高さ(h)と上下速度(vh)に重力を加えることで、放物線の軌道を作る。
   ball = {
     x: random(-55, 55),
-    // 相手の位置から大きく打ち上げ、手前へ落ちてくるサーブ。
+    // 相手の胸より上から、ゆっくり大きな弧を描いて手前へ落ちてくるサーブ。
     z: server === "opponent" ? 0.95 : 0.05,
-    h: 20,
-    vx: random(-1.0, 1.0),
-    vz: server === "opponent" ? -0.010 : 0.010,
-    vh: 12.85,
+    h: server === "opponent" ? 270 : 20,
+    vx: random(-0.7, 0.7),
+    vz: server === "opponent" ? -0.007 : 0.007,
+    vh: server === "opponent" ? 4.99 : 8.34,
     sway: 0,
     swayPhase: 0,
     trail: []
@@ -87,7 +93,7 @@ function updateBall() {
   ball.x += ball.vx + ball.sway * sin(frameCount * 0.18 + ball.swayPhase);
   ball.z += ball.vz;
   ball.h += ball.vh;
-  ball.vh -= 0.271; // 約90フレームかけて頂点から落ちる重力加速度
+  ball.vh -= 0.1; // ゆっくり頂点へ上がり、重力で落ちる
   ball.trail.push({ x: ball.x, z: ball.z, h: ball.h });
   if (ball.trail.length > 30) ball.trail.shift();
 
@@ -115,7 +121,7 @@ function updateOpponent() {
   // 奥の相手は少し遅れてシャトルを追うので、完全には機械的に見えない。
   const target = project(ball.x, ball.z).x;
   opponentX = lerp(opponentX, target, 0.055);
-  opponentX = constrain(opponentX, 405, 595);
+  opponentX = constrain(opponentX, 430, 570);
 }
 
 function canPlayerHit() {
@@ -140,32 +146,33 @@ function returnBallByPlayer() {
   }
 
   ball.z = 0.05;
-  ball.vz = 0.010;
-  ball.vx = constrain((ball.x - screenToWorldX(playerX, 0)) * 0.045, -4.2, 4.2);
-  // 各ラリーを同じ高さから打ち上げ、重力で弧を描かせる。
+  ball.vz = 0.007;
+  ball.vx = constrain((ball.x - screenToWorldX(playerX, 0)) * 0.0315, -2.94, 2.94);
+  // 手前から相手の胸より上へ向け、ゆっくり大きな弧を描かせる。
   ball.h = 20;
-  ball.vh = 12.85;
+  ball.vh = 8.34;
   ball.sway = 0;
   ball.trail = [];
 }
 
 function returnBallByOpponent() {
   playHagoitaHitSE();
+  opponentHit = { expiresAt: millis() + opponentHitDuration };
   ball.z = 0.95;
-  ball.vz = -0.010;
+  ball.vz = -0.007;
   // 相手の返球は中央付近を狙いつつ、毎回左右へ異なる小さな揺れを加える。
   ball.x = constrain(ball.x, -90, 90);
-  ball.vx = random(-1.0, 1.0);
-  ball.h = 20;
-  ball.vh = 12.85;
-  ball.sway = random(0.12, 0.32) * (random() < 0.5 ? -1 : 1);
+  ball.vx = random(-0.7, 0.7);
+  // 相手の胸より上で返球し、そこから手前へ緩く落とす。
+  ball.h = 270;
+  ball.vh = 4.99;
+  ball.sway = random(0.084, 0.224) * (random() < 0.5 ? -1 : 1);
   ball.swayPhase = random(TWO_PI);
   ball.trail = [];
 }
 
 function playerMiss() {
   playerLife--;
-  showMessage("MISS!  自分のライフ -1");
   if (playerLife <= 0) gameState = "lose";
   else resetBall("opponent");
 }
@@ -191,7 +198,6 @@ function screenToWorldX(screenX, z) {
 
 function drawBackground() {
   const fenceTop = 150;
-  const fenceBottom = 426;
   noStroke();
   for (let y = 0; y < fenceTop; y += 4) {
     const amount = map(y, 0, fenceTop, 0, 1);
@@ -211,10 +217,6 @@ function drawBackground() {
     ellipse(x, 162 + (x % 5) * 2, 126, 64);
   }
 
-  fill(132, 95, 52);
-  rect(716, 48, 39, fenceBottom - 48);
-  fill(159, 116, 64);
-  rect(750, 62, 17, fenceBottom - 62);
   fill(197, 151, 95);
   rect(0, fenceTop, width, fenceBottom - fenceTop);
   stroke(135, 94, 53, 180);
@@ -238,11 +240,7 @@ function drawBackground() {
 }
 
 function drawCourt() {
-  // プレーヤー側には線を置かず、奥側だけに控えめな距離の目印を置く。
-  stroke(245, 250, 222, 105);
-  strokeWeight(2);
-  line(290, court.farY + 13, 710, court.farY + 13);
-  noStroke();
+  // 羽根突き用の線は描かず、原っぱをそのまま遊び場にする。
 }
 
 function drawBall() {
@@ -291,21 +289,23 @@ function drawPlayerHit() {
 }
 
 function drawOpponent() {
-  const y = court.farY + 9;
   push();
+  // 塀の最下端に足を接地させ、そのすぐ下に影を落とす。
+  noStroke();
+  fill(25, 48, 24, 105);
+  ellipse(opponentX, fenceBottom + 5, opponentSize * 0.58, 14);
   imageMode(CENTER);
-  // 奥側に立つ相手なので、地面に足元を合わせて小さめに配置する。
-  image(enemyImage, opponentX, y - 80, 160, 160);
+
+  const isHitting = opponentHit && millis() < opponentHit.expiresAt;
+  image(isHitting ? enemyHitImage : enemyImage,
+        opponentX, fenceBottom - opponentSize / 2, opponentSize, opponentSize);
+  if (!isHitting) opponentHit = null;
   pop();
 }
 
 function drawHud() {
   drawLifeIndicator("YOU", playerLife, 34, 28, color(255, 111, 112));
   drawLifeIndicator("OPPONENT", opponentLife, width - 294, 28, color(104, 176, 255));
-  fill(255, 245);
-  textAlign(CENTER, TOP);
-  textSize(15);
-  text("マウスで位置を合わせて羽根を打ち返そう", width / 2, 24);
 }
 
 function drawLifeIndicator(label, life, x, y, lifeColor) {
