@@ -6,14 +6,15 @@ const japaneseFont = '"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
 // 3D は使わず、深度に応じた縮尺で 2D のコートに投影する。
 const court = {
   centerX: width / 2,
-  nearY: height - 102,
-  farY: 316,
+  nearY: height - 62,
+  farY: 395,
   nearScale: 1.16,
   farScale: 0.60,
   halfWidth: 185
 };
 
 const maxLife = 5;
+const hagoitaDisplayDuration = 350;
 let playerLife = maxLife;
 let opponentLife = maxLife;
 let gameState = "playing"; // playing, win, lose
@@ -23,6 +24,14 @@ let opponentX;
 let message = "";
 let messageTimer = 0;
 let audioCtx;
+let enemyImage;
+let hagoitaImage;
+let playerHit = null;
+
+function preload() {
+  enemyImage = loadImage("assets/enemy1.png");
+  hagoitaImage = loadImage("assets/hagoita.png");
+}
 
 function setup() {
   createCanvas(width, height);
@@ -47,7 +56,7 @@ function draw() {
 
   drawOpponent();
   drawBall();
-  drawPlayer();
+  drawPlayerHit();
   drawHud();
 
   if (messageTimer > 0 && gameState === "playing") {
@@ -117,6 +126,12 @@ function canPlayerHit() {
 
 function returnBallByPlayer() {
   opponentLife--;
+  const hitPoint = project(ball.x, ball.z);
+  playerHit = {
+    x: hitPoint.x,
+    y: hitPoint.floorY - ball.h * hitPoint.scale,
+    expiresAt: millis() + hagoitaDisplayDuration
+  };
   playHagoitaHitSE();
 
   if (opponentLife <= 0) {
@@ -175,30 +190,46 @@ function screenToWorldX(screenX, z) {
 }
 
 function drawBackground() {
-  const horizon = 275;
+  const fenceTop = 150;
+  const fenceBottom = 426;
   noStroke();
-  for (let y = 0; y < horizon; y += 4) {
-    const amount = map(y, 0, horizon, 0, 1);
-    fill(lerpColor(color(115, 198, 242), color(230, 246, 255), amount));
+  for (let y = 0; y < fenceTop; y += 4) {
+    const amount = map(y, 0, fenceTop, 0, 1);
+    fill(lerpColor(color(102, 183, 228), color(221, 243, 249), amount));
     rect(0, y, width, 4);
   }
 
-  // 遠くの富士山と木立で、正月の原っぱらしい遠景を作る。
-  fill(126, 163, 185);
-  triangle(590, horizon, 745, 111, 900, horizon);
-  fill(247, 250, 251);
-  triangle(685, 193, 745, 111, 805, 193);
-  fill(97, 145, 108);
-  for (let x = -20; x < width + 30; x += 44) {
-    const treeHeight = 27 + (x % 3) * 8;
-    ellipse(x, horizon - treeHeight / 2, 62, treeHeight + 22);
+  // 参考画面に合わせ、奥は木立、中央は木の塀、手前は芝の庭にする。
+  fill(21, 101, 72);
+  rect(0, 90, width, 105);
+  fill(37, 127, 78);
+  for (let x = -35; x < width + 40; x += 58) {
+    ellipse(x, 132 + (x % 4) * 3, 112, 91);
+  }
+  fill(52, 148, 79);
+  for (let x = -20; x < width + 30; x += 70) {
+    ellipse(x, 162 + (x % 5) * 2, 126, 64);
   }
 
+  fill(132, 95, 52);
+  rect(716, 48, 39, fenceBottom - 48);
+  fill(159, 116, 64);
+  rect(750, 62, 17, fenceBottom - 62);
+  fill(197, 151, 95);
+  rect(0, fenceTop, width, fenceBottom - fenceTop);
+  stroke(135, 94, 53, 180);
+  strokeWeight(3);
+  for (let x = 0; x <= width; x += 44) line(x, fenceTop, x, fenceBottom);
+  stroke(228, 183, 123, 120);
+  strokeWeight(2);
+  for (let y = fenceTop + 7; y < fenceBottom; y += 53) line(0, y, width, y);
+
+  noStroke();
   fill(110, 181, 83);
-  rect(0, horizon, width, height - horizon);
-  // 水平の草のレイヤー。上から見下ろす格子ではなく、地平線へ続く芝にする。
+  rect(0, fenceBottom, width, height - fenceBottom);
+  // 水平の草のレイヤーで、画面手前へ続く芝にする。
   for (let i = 0; i < 7; i++) {
-    const y = horizon + i * i * 7;
+    const y = fenceBottom + i * i * 5;
     stroke(76, 154, 67, 105);
     strokeWeight(3 + i);
     line(0, y, width, y);
@@ -207,10 +238,7 @@ function drawBackground() {
 }
 
 function drawCourt() {
-  // 羽根突きはネットを挟まず向かい合う遊びなので、足元の目印だけを置く。
-  stroke(245, 250, 222, 180);
-  strokeWeight(3);
-  line(115, court.nearY + 26, 885, court.nearY + 26);
+  // プレーヤー側には線を置かず、奥側だけに控えめな距離の目印を置く。
   stroke(245, 250, 222, 105);
   strokeWeight(2);
   line(290, court.farY + 13, 710, court.farY + 13);
@@ -242,56 +270,32 @@ function drawBall() {
   triangle(p.x - size * 0.08, ballY + size * 0.18, p.x + size * 0.46, ballY - size * 0.92, p.x + size * 0.52, ballY + size * 0.23);
 }
 
-function drawPlayer() {
-  const paddleY = court.nearY - 23;
+function drawPlayerHit() {
+  if (!playerHit || millis() >= playerHit.expiresAt) {
+    playerHit = null;
+    return;
+  }
+
+  // プレイヤー自身は画面の手前側にいる想定。返球の一瞬だけ羽子板を見せる。
   push();
-  translate(playerX, paddleY);
-  scale(1.38); // 手前の人物を大きく描き、キャラクターに寄った構図にする。
-  noStroke();
-  fill(20, 27, 48, 185);
-  ellipse(0, 37, 74, 19);
-  fill(255, 172, 72);
-  circle(0, 0, 42);
-  fill(255, 236, 200);
-  circle(0, -26, 31);
-  fill(245, 88, 92);
-  rect(-23, 15, 46, 26, 8);
-  // 羽子板は縦長の木札。花模様を加えて、ラケットではなく羽子板に見せる。
-  stroke(107, 55, 23);
-  strokeWeight(8);
-  line(19, 16, 42, -37);
-  noStroke();
-  fill(232, 94, 67);
-  ellipse(48, -65, 31, 76);
-  fill(255, 228, 112);
-  circle(48, -65, 10);
-  circle(39, -52, 7);
-  circle(57, -52, 7);
+  imageMode(CENTER);
+  translate(playerHit.x + 18, playerHit.y + 13);
+  rotate(-PI / 5);
+  const remaining = playerHit.expiresAt - millis();
+  const fade = map(remaining, 0, hagoitaDisplayDuration, 0, 255);
+  tint(255, fade);
+  image(hagoitaImage, 0, 0, 78, 104);
+  noTint();
   pop();
+
 }
 
 function drawOpponent() {
-  const y = court.farY - 7;
+  const y = court.farY + 9;
   push();
-  translate(opponentX, y);
-  scale(1.18);
-  noStroke();
-  fill(5, 15, 31, 170);
-  ellipse(0, 17, 40, 9);
-  fill(104, 176, 255);
-  circle(0, 0, 24);
-  fill(255, 222, 178);
-  circle(0, -16, 18);
-  fill(53, 91, 184);
-  rect(-12, 10, 24, 16, 4);
-  stroke(107, 55, 23);
-  strokeWeight(4);
-  line(10, 8, 24, -18);
-  noStroke();
-  fill(235, 105, 73);
-  ellipse(28, -29, 17, 38);
-  fill(255, 228, 112);
-  circle(28, -29, 5);
+  imageMode(CENTER);
+  // 奥側に立つ相手なので、地面に足元を合わせて小さめに配置する。
+  image(enemyImage, opponentX, y - 80, 160, 160);
   pop();
 }
 
@@ -301,7 +305,7 @@ function drawHud() {
   fill(255, 245);
   textAlign(CENTER, TOP);
   textSize(15);
-  text("マウスでラケットを動かしてシャトルを打ち返そう", width / 2, 24);
+  text("マウスで位置を合わせて羽根を打ち返そう", width / 2, 24);
 }
 
 function drawLifeIndicator(label, life, x, y, lifeColor) {
@@ -393,6 +397,7 @@ function mousePressed() {
   opponentLife = maxLife;
   gameState = "playing";
   messageTimer = 0;
+  playerHit = null;
   resetBall("opponent");
   return false;
 }
