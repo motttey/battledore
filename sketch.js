@@ -12,8 +12,7 @@ const court = {
   nearY: height - 62,
   farY: 395,
   nearScale: 1.16,
-  farScale: 0.60,
-  halfWidth: 185
+  farScale: 0.60
 };
 
 const maxLife = 5;
@@ -83,24 +82,20 @@ function resetBall(server) {
     vx: random(-0.7, 0.7),
     vz: server === "opponent" ? -0.007 : 0.007,
     vh: server === "opponent" ? 4.99 : 8.34,
-    sway: 0,
-    swayPhase: 0,
+    wind: random(-0.004, 0.004),
     trail: []
   };
 }
 
 function updateBall() {
-  ball.x += ball.vx + ball.sway * sin(frameCount * 0.18 + ball.swayPhase);
+  // 横方向には打球ごとに異なる弱い風圧だけを加え、急な反転のない自然な揺れにする。
+  ball.x += ball.vx;
+  ball.vx += ball.wind;
   ball.z += ball.vz;
   ball.h += ball.vh;
   ball.vh -= 0.1; // ゆっくり頂点へ上がり、重力で落ちる
   ball.trail.push({ x: ball.x, z: ball.z, h: ball.h });
   if (ball.trail.length > 30) ball.trail.shift();
-
-  if (abs(ball.x) > court.halfWidth) {
-    ball.x = constrain(ball.x, -court.halfWidth, court.halfWidth);
-    ball.vx *= -1;
-  }
 
   // 地面に触れたら、その側のプレイヤーが落とした扱いにする。
   if (ball.h <= 0) {
@@ -151,7 +146,7 @@ function returnBallByPlayer() {
   // 手前から相手の胸より上へ向け、ゆっくり大きな弧を描かせる。
   ball.h = 20;
   ball.vh = 8.34;
-  ball.sway = 0;
+  ball.wind = random(-0.004, 0.004);
   ball.trail = [];
 }
 
@@ -160,14 +155,13 @@ function returnBallByOpponent() {
   opponentHit = { expiresAt: millis() + opponentHitDuration };
   ball.z = 0.95;
   ball.vz = -0.007;
-  // 相手の返球は中央付近を狙いつつ、毎回左右へ異なる小さな揺れを加える。
+  // 相手の返球にもわずかな風圧を与え、緩く横へ流れるようにする。
   ball.x = constrain(ball.x, -90, 90);
   ball.vx = random(-0.7, 0.7);
   // 相手の胸より上で返球し、そこから手前へ緩く落とす。
   ball.h = 270;
   ball.vh = 4.99;
-  ball.sway = random(0.084, 0.224) * (random() < 0.5 ? -1 : 1);
-  ball.swayPhase = random(TWO_PI);
+  ball.wind = random(-0.004, 0.004);
   ball.trail = [];
 }
 
