@@ -4,6 +4,13 @@ const japaneseFont = '"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
 const fenceBottom = 426;
 const opponentSize = 315;
 const opponentHitDuration = 300;
+const characterCards = [
+  { x: 270, y: 318 },
+  { x: 500, y: 318 },
+  { x: 730, y: 318 }
+];
+const characterCardWidth = 190;
+const characterCardHeight = 236;
 
 // z = 0 は手前（プレイヤー）、z = 1 は奥（相手）。
 // 3D は使わず、深度に応じた縮尺で 2D のコートに投影する。
@@ -19,7 +26,7 @@ const maxLife = 5;
 const hagoitaDisplayDuration = 350;
 let playerLife = maxLife;
 let opponentLife = maxLife;
-let gameState = "playing"; // playing, win, lose
+let gameState = "start"; // start, playing, win, lose
 let ball;
 let playerX;
 let opponentX;
@@ -31,6 +38,7 @@ let enemyHitImage;
 let hagoitaImage;
 let playerHit = null;
 let opponentHit = null;
+let selectedCharacter = 0;
 
 function preload() {
   enemyImage = loadImage("assets/enemy1.png");
@@ -51,6 +59,12 @@ function setup() {
 
 function draw() {
   drawBackground();
+
+  if (gameState === "start") {
+    drawStartScreen();
+    return;
+  }
+
   drawCourt();
 
   if (gameState === "playing") {
@@ -297,6 +311,55 @@ function drawOpponent() {
   pop();
 }
 
+function characterAt(screenX, screenY) {
+  return characterCards.findIndex((card) =>
+    abs(screenX - card.x) <= characterCardWidth / 2 &&
+    abs(screenY - card.y) <= characterCardHeight / 2
+  );
+}
+
+function drawStartScreen() {
+  noStroke();
+  fill(7, 20, 37, 170);
+  rect(0, 0, width, height);
+
+  fill(255, 233, 126);
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  text("はねつき", width / 2, 78);
+  fill(255);
+  textSize(18);
+  text("キャラクターを選んでクリックすると開始します", width / 2, 126);
+
+  const hoveredCard = characterAt(mouseX, mouseY);
+  cursor(hoveredCard >= 0 ? HAND : ARROW);
+
+  for (let i = 0; i < characterCards.length; i++) {
+    const card = characterCards[i];
+    const isHovered = i === hoveredCard;
+    const isSelected = i === selectedCharacter;
+
+    stroke(isHovered || isSelected ? color(255, 224, 104) : color(255, 255, 255, 150));
+    strokeWeight(isHovered ? 5 : 2);
+    fill(isHovered ? color(255, 255, 255, 235) : color(238, 248, 255, 215));
+    rect(card.x - characterCardWidth / 2, card.y - characterCardHeight / 2,
+         characterCardWidth, characterCardHeight, 18);
+
+    imageMode(CENTER);
+    // 現在は全枠で同じキャラ。ホバーした枠だけ2枚目の画像を見せる。
+    image(isHovered ? enemyHitImage : enemyImage, card.x, card.y - 22, 132, 132);
+    noStroke();
+    fill(26, 65, 96);
+    textSize(16);
+    text(`キャラクター ${i + 1}`, card.x, card.y + 68);
+    fill(93, 104, 116);
+    textSize(13);
+    text("クリックして開始", card.x, card.y + 94);
+  }
+
+  noStroke();
+}
+
 function drawHud() {
   drawLifeIndicator("YOU", playerLife, 34, 28, color(255, 111, 112));
   drawLifeIndicator("OPPONENT", opponentLife, width - 294, 28, color(104, 176, 255));
@@ -386,12 +449,23 @@ function drawEndScreen() {
 
 function mousePressed() {
   enableSound();
+  if (gameState === "start") {
+    const cardIndex = characterAt(mouseX, mouseY);
+    if (cardIndex >= 0) selectedCharacter = cardIndex;
+    startGame();
+    return false;
+  }
   if (gameState === "playing") return false;
+  startGame();
+  return false;
+}
+
+function startGame() {
   playerLife = maxLife;
   opponentLife = maxLife;
   gameState = "playing";
   messageTimer = 0;
   playerHit = null;
+  opponentHit = null;
   resetBall("opponent");
-  return false;
 }
