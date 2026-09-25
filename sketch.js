@@ -40,14 +40,13 @@ let playerHit = null;
 let opponentHit = null;
 let selectedCharacter = 0;
 
-function preload() {
-  enemyImage = loadImage("assets/enemy1.png");
-  enemyHitImage = loadImage("assets/enemy2.png");
-  hagoitaImage = loadImage("assets/hagoita.png");
-}
-
-function setup() {
+async function setup() {
   createCanvas(width, height);
+  [enemyImage, enemyHitImage, hagoitaImage] = await Promise.all([
+    loadImage("assets/enemy1.png"),
+    loadImage("assets/enemy2.png"),
+    loadImage("assets/hagoita.png")
+  ]);
   // 日本語を標準搭載しているフォントを優先し、未読込の Web フォントに依存しない。
   textFont(japaneseFont);
   playerX = width / 2;
