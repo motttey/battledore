@@ -12,6 +12,48 @@ const characterCards = [
 const characterCardWidth = 190;
 const characterCardHeight = 236;
 
+// 選択キャラクターごとのゲーム設定。
+// 軌道を変えたいときは各 profile の flight を調整するだけでよい。
+// z は 0 がプレイヤー側、1 が相手側。h / vh は羽根の高さと初速。
+const characterProfiles = [
+  {
+    name: "まっすぐタイプ",
+    summary: "素直で安定した返球",
+    arcLabel: "標準軌道",
+    accent: [255, 111, 112],
+    player: { moveMin: 290, moveMax: 710, hitDistance: 78, hitMaxHeight: 205 },
+    flight: {
+      opponentServe: { startXRange: 55, startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99, xVelocityRange: 0.7, windRange: 0.004 },
+      playerReturn: { startZ: 0.05, startHeight: 20, vz: 0.007, vh: 8.34, xVelocityMultiplier: 0.0315, maxXVelocity: 2.94, windRange: 0.004 },
+      opponentReturn: { startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99, xVelocityRange: 0.7, maxX: 90, windRange: 0.004 }
+    }
+  },
+  {
+    name: "ふんわりタイプ",
+    summary: "高くゆるやかな放物線",
+    arcLabel: "高い放物線",
+    accent: [255, 190, 77],
+    player: { moveMin: 278, moveMax: 722, hitDistance: 88, hitMaxHeight: 230 },
+    flight: {
+      opponentServe: { startXRange: 42, startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, windRange: 0.002 },
+      playerReturn: { startZ: 0.05, startHeight: 18, vz: 0.0062, vh: 9.25, xVelocityMultiplier: 0.024, maxXVelocity: 2.2, windRange: 0.002 },
+      opponentReturn: { startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, maxX: 76, windRange: 0.002 }
+    }
+  },
+  {
+    name: "くせ球タイプ",
+    summary: "横風に乗る変化球",
+    arcLabel: "横に流れる軌道",
+    accent: [111, 201, 255],
+    player: { moveMin: 300, moveMax: 700, hitDistance: 70, hitMaxHeight: 190 },
+    flight: {
+      opponentServe: { startXRange: 75, startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, windRange: 0.009 },
+      playerReturn: { startZ: 0.05, startHeight: 20, vz: 0.0077, vh: 7.75, xVelocityMultiplier: 0.043, maxXVelocity: 3.65, windRange: 0.009 },
+      opponentReturn: { startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, maxX: 115, windRange: 0.009 }
+    }
+  }
+];
+
 // z = 0 は手前（プレイヤー）、z = 1 は奥（相手）。
 // 3D は使わず、深度に応じた縮尺で 2D のコートに投影する。
 const court = {
@@ -40,6 +82,10 @@ let playerHit = null;
 let opponentHit = null;
 let selectedCharacter = 0;
 
+function selectedProfile() {
+  return characterProfiles[selectedCharacter];
+}
+
 async function setup() {
   createCanvas(width, height);
   [enemyImage, enemyHitImage, hagoitaImage] = await Promise.all([
@@ -51,7 +97,7 @@ async function setup() {
   textFont(japaneseFont);
   playerX = width / 2;
   opponentX = width / 2;
-  resetBall("opponent");
+  resetBall();
   // キャンバス外で最初にクリックした場合にも、以後の打球音を有効にする。
   document.addEventListener("pointerdown", enableSound, { once: true });
 }
@@ -67,7 +113,8 @@ function draw() {
   drawCourt();
 
   if (gameState === "playing") {
-    playerX = constrain(mouseX, 290, 710);
+    const controls = selectedProfile().player;
+    playerX = constrain(mouseX, controls.moveMin, controls.moveMax);
     updateOpponent();
     updateBall();
   }
@@ -85,17 +132,18 @@ function draw() {
   if (gameState !== "playing") drawEndScreen();
 }
 
-function resetBall(server) {
+function resetBall() {
+  const flight = selectedProfile().flight.opponentServe;
   // 高さ(h)と上下速度(vh)に重力を加えることで、放物線の軌道を作る。
+  // サーブも選択キャラクターの profile から生成する。
   ball = {
-    x: random(-55, 55),
-    // 相手の胸より上から、ゆっくり大きな弧を描いて手前へ落ちてくるサーブ。
-    z: server === "opponent" ? 0.95 : 0.05,
-    h: server === "opponent" ? 270 : 20,
-    vx: random(-0.7, 0.7),
-    vz: server === "opponent" ? -0.007 : 0.007,
-    vh: server === "opponent" ? 4.99 : 8.34,
-    wind: random(-0.004, 0.004),
+    x: random(-flight.startXRange, flight.startXRange),
+    z: flight.startZ,
+    h: flight.startHeight,
+    vx: random(-flight.xVelocityRange, flight.xVelocityRange),
+    vz: flight.vz,
+    vh: flight.vh,
+    wind: random(-flight.windRange, flight.windRange),
     trail: []
   };
 }
@@ -134,11 +182,13 @@ function updateOpponent() {
 
 function canPlayerHit() {
   const p = project(ball.x, ball.z);
+  const controls = selectedProfile().player;
   // 手前のラケットの届く高さにあるときだけ打ち返せる。
-  return abs(p.x - playerX) < 78 && ball.h < 205;
+  return abs(p.x - playerX) < controls.hitDistance && ball.h < controls.hitMaxHeight;
 }
 
 function returnBallByPlayer() {
+  const flight = selectedProfile().flight.playerReturn;
   opponentLife--;
   const hitPoint = project(ball.x, ball.z);
   playerHit = {
@@ -153,41 +203,44 @@ function returnBallByPlayer() {
     return;
   }
 
-  ball.z = 0.05;
-  ball.vz = 0.007;
-  ball.vx = constrain((ball.x - screenToWorldX(playerX, 0)) * 0.0315, -2.94, 2.94);
-  // 手前から相手の胸より上へ向け、ゆっくり大きな弧を描かせる。
-  ball.h = 20;
-  ball.vh = 8.34;
-  ball.wind = random(-0.004, 0.004);
+  ball.z = flight.startZ;
+  ball.vz = flight.vz;
+  ball.vx = constrain(
+    (ball.x - screenToWorldX(playerX, 0)) * flight.xVelocityMultiplier,
+    -flight.maxXVelocity,
+    flight.maxXVelocity
+  );
+  ball.h = flight.startHeight;
+  ball.vh = flight.vh;
+  ball.wind = random(-flight.windRange, flight.windRange);
   ball.trail = [];
 }
 
 function returnBallByOpponent() {
+  const flight = selectedProfile().flight.opponentReturn;
   playHagoitaHitSE();
   opponentHit = { expiresAt: millis() + opponentHitDuration };
-  ball.z = 0.95;
-  ball.vz = -0.007;
+  ball.z = flight.startZ;
+  ball.vz = flight.vz;
   // 相手の返球にもわずかな風圧を与え、緩く横へ流れるようにする。
-  ball.x = constrain(ball.x, -90, 90);
-  ball.vx = random(-0.7, 0.7);
-  // 相手の胸より上で返球し、そこから手前へ緩く落とす。
-  ball.h = 270;
-  ball.vh = 4.99;
-  ball.wind = random(-0.004, 0.004);
+  ball.x = constrain(ball.x, -flight.maxX, flight.maxX);
+  ball.vx = random(-flight.xVelocityRange, flight.xVelocityRange);
+  ball.h = flight.startHeight;
+  ball.vh = flight.vh;
+  ball.wind = random(-flight.windRange, flight.windRange);
   ball.trail = [];
 }
 
 function playerMiss() {
   playerLife--;
   if (playerLife <= 0) gameState = "lose";
-  else resetBall("opponent");
+  else resetBall();
 }
 
 function opponentMiss() {
   opponentLife--;
   if (opponentLife <= 0) gameState = "win";
-  else resetBall("opponent");
+  else resetBall();
 }
 
 function project(worldX, z) {
@@ -335,25 +388,29 @@ function drawStartScreen() {
 
   for (let i = 0; i < characterCards.length; i++) {
     const card = characterCards[i];
+    const profile = characterProfiles[i];
     const isHovered = i === hoveredCard;
     const isSelected = i === selectedCharacter;
 
-    stroke(isHovered || isSelected ? color(255, 224, 104) : color(255, 255, 255, 150));
+    stroke(isHovered || isSelected ? color(...profile.accent) : color(255, 255, 255, 150));
     strokeWeight(isHovered ? 5 : 2);
     fill(isHovered ? color(255, 255, 255, 235) : color(238, 248, 255, 215));
     rect(card.x - characterCardWidth / 2, card.y - characterCardHeight / 2,
          characterCardWidth, characterCardHeight, 18);
 
     imageMode(CENTER);
-    // 現在は全枠で同じキャラ。ホバーした枠だけ2枚目の画像を見せる。
+    // 見た目画像は共通だが、各枠は異なるゲーム設定の profile を持つ。
     image(isHovered ? enemyHitImage : enemyImage, card.x, card.y - 22, 132, 132);
     noStroke();
     fill(26, 65, 96);
     textSize(16);
-    text(`キャラクター ${i + 1}`, card.x, card.y + 68);
+    text(profile.name, card.x, card.y + 63);
     fill(93, 104, 116);
     textSize(13);
-    text("クリックして開始", card.x, card.y + 94);
+    text(profile.summary, card.x, card.y + 87);
+    fill(...profile.accent);
+    textSize(12);
+    text(`羽根: ${profile.arcLabel}`, card.x, card.y + 108);
   }
 
   noStroke();
@@ -362,6 +419,11 @@ function drawStartScreen() {
 function drawHud() {
   drawLifeIndicator("YOU", playerLife, 34, 28, color(255, 111, 112));
   drawLifeIndicator("OPPONENT", opponentLife, width - 294, 28, color(104, 176, 255));
+  const profile = selectedProfile();
+  textAlign(CENTER, TOP);
+  textSize(14);
+  fill(...profile.accent);
+  text(`YOU: ${profile.name}（${profile.arcLabel}）`, width / 2, 28);
 }
 
 function drawLifeIndicator(label, life, x, y, lifeColor) {
@@ -466,5 +528,5 @@ function startGame() {
   messageTimer = 0;
   playerHit = null;
   opponentHit = null;
-  resetBall("opponent");
+  resetBall();
 }
