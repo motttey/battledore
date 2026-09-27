@@ -17,10 +17,12 @@ const characterCardHeight = 236;
 // z は 0 がプレイヤー側、1 が相手側。h / vh は羽根の高さと初速。
 const characterProfiles = [
   {
+    id: 1,
     name: "まっすぐタイプ",
     summary: "素直で安定した返球",
     arcLabel: "標準軌道",
     accent: [255, 111, 112],
+    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
     player: { moveMin: 290, moveMax: 710, hitDistance: 78, hitMaxHeight: 205 },
     flight: {
       opponentServe: { startXRange: 55, startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99, xVelocityRange: 0.7, windRange: 0.004 },
@@ -29,10 +31,12 @@ const characterProfiles = [
     }
   },
   {
+    id: 2,
     name: "ふんわりタイプ",
     summary: "高くゆるやかな放物線",
     arcLabel: "高い放物線",
     accent: [255, 190, 77],
+    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
     player: { moveMin: 278, moveMax: 722, hitDistance: 88, hitMaxHeight: 230 },
     flight: {
       opponentServe: { startXRange: 42, startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, windRange: 0.002 },
@@ -41,10 +45,12 @@ const characterProfiles = [
     }
   },
   {
+    id: 3,
     name: "くせ球タイプ",
     summary: "横風に乗る変化球",
     arcLabel: "横に流れる軌道",
     accent: [111, 201, 255],
+    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
     player: { moveMin: 300, moveMax: 700, hitDistance: 70, hitMaxHeight: 190 },
     flight: {
       opponentServe: { startXRange: 75, startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, windRange: 0.009 },
@@ -75,9 +81,6 @@ let opponentX;
 let message = "";
 let messageTimer = 0;
 let audioCtx;
-let enemyImage;
-let enemyHitImage;
-let hagoitaImage;
 let playerHit = null;
 let opponentHit = null;
 let selectedCharacter = 0;
@@ -88,11 +91,7 @@ function selectedProfile() {
 
 async function setup() {
   createCanvas(width, height);
-  [enemyImage, enemyHitImage, hagoitaImage] = await Promise.all([
-    loadImage("assets/enemy1.png"),
-    loadImage("assets/enemy2.png"),
-    loadImage("assets/hagoita.png")
-  ]);
+  await loadCharacterImages();
   // 日本語を標準搭載しているフォントを優先し、未読込の Web フォントに依存しない。
   textFont(japaneseFont);
   playerX = width / 2;
@@ -100,6 +99,25 @@ async function setup() {
   resetBall();
   // キャンバス外で最初にクリックした場合にも、以後の打球音を有効にする。
   document.addEventListener("pointerdown", enableSound, { once: true });
+}
+
+async function loadCharacterImages() {
+  // 同じパスを複数の profile で使う場合も、一度だけロードする。
+  const imageCache = new Map();
+  const load = (path) => {
+    if (!imageCache.has(path)) imageCache.set(path, loadImage(path));
+    return imageCache.get(path);
+  };
+
+  await Promise.all(characterProfiles.map(async (profile) => {
+    const paths = profile.imagePaths;
+    const [idle, hit, hagoita] = await Promise.all([
+      load(paths.idle),
+      load(paths.hit),
+      load(paths.hagoita)
+    ]);
+    profile.images = { idle, hit, hagoita };
+  }));
 }
 
 function draw() {
@@ -342,13 +360,14 @@ function drawPlayerHit() {
   const remaining = playerHit.expiresAt - millis();
   const fade = map(remaining, 0, hagoitaDisplayDuration, 0, 255);
   tint(255, fade);
-  image(hagoitaImage, 0, 0, 78, 104);
+  image(selectedProfile().images.hagoita, 0, 0, 78, 104);
   noTint();
   pop();
 
 }
 
 function drawOpponent() {
+  const images = selectedProfile().images;
   push();
   // 塀の最下端に足を接地させ、そのすぐ下に影を落とす。
   noStroke();
@@ -357,7 +376,7 @@ function drawOpponent() {
   imageMode(CENTER);
 
   const isHitting = opponentHit && millis() < opponentHit.expiresAt;
-  image(isHitting ? enemyHitImage : enemyImage,
+  image(isHitting ? images.hit : images.idle,
         opponentX, fenceBottom - opponentSize / 2, opponentSize, opponentSize);
   if (!isHitting) opponentHit = null;
   pop();
@@ -399,8 +418,7 @@ function drawStartScreen() {
          characterCardWidth, characterCardHeight, 18);
 
     imageMode(CENTER);
-    // 見た目画像は共通だが、各枠は異なるゲーム設定の profile を持つ。
-    image(isHovered ? enemyHitImage : enemyImage, card.x, card.y - 22, 132, 132);
+    image(isHovered ? profile.images.hit : profile.images.idle, card.x, card.y - 22, 132, 132);
     noStroke();
     fill(26, 65, 96);
     textSize(16);
