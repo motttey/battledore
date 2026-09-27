@@ -22,12 +22,25 @@ const characterProfiles = [
     summary: "素直で安定した返球",
     arcLabel: "標準軌道",
     accent: [255, 111, 112],
-    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
+    imagePaths: {
+      idle: "assets/enemy1.png",
+      hit: "assets/enemy2.png",
+      hagoita: "assets/hagoita.png"
+    },
     player: { moveMin: 290, moveMax: 710, hitDistance: 78, hitMaxHeight: 205 },
     flight: {
-      opponentServe: { startXRange: 55, startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99, xVelocityRange: 0.7, windRange: 0.004 },
-      playerReturn: { startZ: 0.05, startHeight: 20, vz: 0.007, vh: 8.34, xVelocityMultiplier: 0.0315, maxXVelocity: 2.94, windRange: 0.004 },
-      opponentReturn: { startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99, xVelocityRange: 0.7, maxX: 90, windRange: 0.004 }
+      opponentServe: {
+        startXRange: 55, startZ: 0.95, startHeight: 270,
+        vz: -0.007, vh: 4.99, xVelocityRange: 0.7, windRange: 0.004
+      },
+      playerReturn: {
+        startZ: 0.05, startHeight: 20, vz: 0.007, vh: 8.34,
+        xVelocityMultiplier: 0.0315, maxXVelocity: 2.94, windRange: 0.004
+      },
+      opponentReturn: {
+        startZ: 0.95, startHeight: 270, vz: -0.007, vh: 4.99,
+        xVelocityRange: 0.7, maxX: 90, windRange: 0.004
+      }
     }
   },
   {
@@ -36,12 +49,25 @@ const characterProfiles = [
     summary: "高くゆるやかな放物線",
     arcLabel: "高い放物線",
     accent: [255, 190, 77],
-    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
+    imagePaths: {
+      idle: "assets/enemy1.png",
+      hit: "assets/enemy2.png",
+      hagoita: "assets/hagoita.png"
+    },
     player: { moveMin: 278, moveMax: 722, hitDistance: 88, hitMaxHeight: 230 },
     flight: {
-      opponentServe: { startXRange: 42, startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, windRange: 0.002 },
-      playerReturn: { startZ: 0.05, startHeight: 18, vz: 0.0062, vh: 9.25, xVelocityMultiplier: 0.024, maxXVelocity: 2.2, windRange: 0.002 },
-      opponentReturn: { startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, maxX: 76, windRange: 0.002 }
+      opponentServe: {
+        startXRange: 42, startZ: 0.95, startHeight: 250,
+        vz: -0.0062, vh: 5.65, xVelocityRange: 0.45, windRange: 0.002
+      },
+      playerReturn: {
+        startZ: 0.05, startHeight: 18, vz: 0.0062, vh: 9.25,
+        xVelocityMultiplier: 0.024, maxXVelocity: 2.2, windRange: 0.002
+      },
+      opponentReturn: {
+        startZ: 0.95, startHeight: 250, vz: -0.0062, vh: 5.65,
+        xVelocityRange: 0.45, maxX: 76, windRange: 0.002
+      }
     }
   },
   {
@@ -50,12 +76,25 @@ const characterProfiles = [
     summary: "横風に乗る変化球",
     arcLabel: "横に流れる軌道",
     accent: [111, 201, 255],
-    imagePaths: { idle: "assets/enemy1.png", hit: "assets/enemy2.png", hagoita: "assets/hagoita.png" },
+    imagePaths: {
+      idle: "assets/enemy1.png",
+      hit: "assets/enemy2.png",
+      hagoita: "assets/hagoita.png"
+    },
     player: { moveMin: 300, moveMax: 700, hitDistance: 70, hitMaxHeight: 190 },
     flight: {
-      opponentServe: { startXRange: 75, startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, windRange: 0.009 },
-      playerReturn: { startZ: 0.05, startHeight: 20, vz: 0.0077, vh: 7.75, xVelocityMultiplier: 0.043, maxXVelocity: 3.65, windRange: 0.009 },
-      opponentReturn: { startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, maxX: 115, windRange: 0.009 }
+      opponentServe: {
+        startXRange: 75, startZ: 0.95, startHeight: 255,
+        vz: -0.0077, vh: 4.6, xVelocityRange: 1.05, windRange: 0.009
+      },
+      playerReturn: {
+        startZ: 0.05, startHeight: 20, vz: 0.0077, vh: 7.75,
+        xVelocityMultiplier: 0.043, maxXVelocity: 3.65, windRange: 0.009
+      },
+      opponentReturn: {
+        startZ: 0.95, startHeight: 255, vz: -0.0077, vh: 4.6,
+        xVelocityRange: 1.05, maxX: 115, windRange: 0.009
+      }
     }
   }
 ];
@@ -92,12 +131,14 @@ function selectedProfile() {
 async function setup() {
   createCanvas(width, height);
   await loadCharacterImages();
-  // 日本語を標準搭載しているフォントを優先し、未読込の Web フォントに依存しない。
+  // 日本語を標準搭載しているフォントを優先する。
+  // 未読込の Web フォントには依存しない。
   textFont(japaneseFont);
   playerX = width / 2;
   opponentX = width / 2;
   resetBall();
-  // キャンバス外で最初にクリックした場合にも、以後の打球音を有効にする。
+  // キャンバス外で最初にクリックした場合にも、
+  // 以後の打球音を有効にする。
   document.addEventListener("pointerdown", enableSound, { once: true });
 }
 
@@ -167,7 +208,7 @@ function resetBall() {
 }
 
 function updateBall() {
-  // 横方向には打球ごとに異なる弱い風圧だけを加え、急な反転のない自然な揺れにする。
+  // 横方向には打球ごとに異なる弱い風圧だけを加える
   ball.x += ball.vx;
   ball.vx += ball.wind;
   ball.z += ball.vz;
@@ -192,7 +233,6 @@ function updateBall() {
 }
 
 function updateOpponent() {
-  // 奥の相手は少し遅れてシャトルを追うので、完全には機械的に見えない。
   const target = project(ball.x, ball.z).x;
   opponentX = lerp(opponentX, target, 0.055);
   opponentX = constrain(opponentX, 430, 570);
@@ -341,9 +381,17 @@ function drawBall() {
   fill(68, 37, 19);
   ellipse(p.x, ballY + size * 0.29, size * 0.48, size * 0.4);
   fill(245, 75, 72);
-  triangle(p.x - size * 0.52, ballY + size * 0.18, p.x, ballY - size * 1.05, p.x + size * 0.16, ballY + size * 0.2);
+  triangle(
+    p.x - size * 0.52, ballY + size * 0.18,
+    p.x, ballY - size * 1.05,
+    p.x + size * 0.16, ballY + size * 0.2
+  );
   fill(255, 239, 95);
-  triangle(p.x - size * 0.08, ballY + size * 0.18, p.x + size * 0.46, ballY - size * 0.92, p.x + size * 0.52, ballY + size * 0.23);
+  triangle(
+    p.x - size * 0.08, ballY + size * 0.18,
+    p.x + size * 0.46, ballY - size * 0.92,
+    p.x + size * 0.52, ballY + size * 0.23
+  );
 }
 
 function drawPlayerHit() {
@@ -352,7 +400,8 @@ function drawPlayerHit() {
     return;
   }
 
-  // プレイヤー自身は画面の手前側にいる想定。返球の一瞬だけ羽子板を見せる。
+  // プレイヤー自身は画面の手前側にいる想定。
+  // 返球の一瞬だけ羽子板を見せる。
   push();
   imageMode(CENTER);
   translate(playerHit.x + 18, playerHit.y + 13);
