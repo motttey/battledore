@@ -18,9 +18,7 @@ const characterCardHeight = 236;
 const characterProfiles = [
   {
     id: 1,
-    name: "まっすぐタイプ",
-    summary: "素直で安定した返球",
-    arcLabel: "標準軌道",
+    name: "餅田ラザーニャ1",
     accent: [255, 111, 112],
     imagePaths: {
       idle: "assets/enemy1.png",
@@ -45,9 +43,7 @@ const characterProfiles = [
   },
   {
     id: 2,
-    name: "ふんわりタイプ",
-    summary: "高くゆるやかな放物線",
-    arcLabel: "高い放物線",
+    name: "餅田ラザーニャ2",
     accent: [255, 190, 77],
     imagePaths: {
       idle: "assets/enemy1.png",
@@ -72,9 +68,7 @@ const characterProfiles = [
   },
   {
     id: 3,
-    name: "くせ球タイプ",
-    summary: "横風に乗る変化球",
-    arcLabel: "横に流れる軌道",
+    name: "餅田ラザーニャ3",
     accent: [111, 201, 255],
     imagePaths: {
       idle: "assets/enemy1.png",
@@ -472,12 +466,6 @@ function drawStartScreen() {
     fill(26, 65, 96);
     textSize(16);
     text(profile.name, card.x, card.y + 63);
-    fill(93, 104, 116);
-    textSize(13);
-    text(profile.summary, card.x, card.y + 87);
-    fill(...profile.accent);
-    textSize(12);
-    text(`羽根: ${profile.arcLabel}`, card.x, card.y + 108);
   }
 
   noStroke();
@@ -490,7 +478,7 @@ function drawHud() {
   textAlign(CENTER, TOP);
   textSize(14);
   fill(...profile.accent);
-  text(`YOU: ${profile.name}（${profile.arcLabel}）`, width / 2, 28);
+  text(`YOU: ${profile.name}`, width / 2, 28);
 }
 
 function drawLifeIndicator(label, life, x, y, lifeColor) {
